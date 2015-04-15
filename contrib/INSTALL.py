@@ -459,6 +459,6 @@ gen_launcher('lisa-rebuild-eclipse',           'lisaRebuild4Eclipse', 'rosRebuil
                                                                                            'source ' + LOCAL_BASH_FILE + '\n'\
                                                                                            'echo "Press any key to continue..."\nread')
 
-gen_launcher('lisa-simulator',                 'lisaSimulationEnv',   'rosSimulator.png',  'roslaunch lisa_simulator lisa_simulator.launch')
+gen_launcher('lisa-simulator',                 'lisaSimulationEnv',   'rosSimulator.png',  'roslaunch lisa_gazebo lisa_world.launch')
 gen_launcher('lisa-core-4-real',               'lisaCore4Real',       'rosRun4Real.png',   'roslaunch lisa_examples core.launch')
 

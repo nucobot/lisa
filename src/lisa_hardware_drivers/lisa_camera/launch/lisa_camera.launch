@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node pkg="lisa_camera" name="lisa_camera" type="lisa_camera" output="screen">
+    </node>
+</launch>
