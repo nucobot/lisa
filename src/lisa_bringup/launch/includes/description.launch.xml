@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--
+  Robot description only (used in private and paired master).
+ -->
+<launch>
+  <arg name="3d_sensor"/>
+  <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find lisa_description)/lisa/urdf/lisa.urdf.xacro'" />
+  <param name="robot_description" command="$(arg urdf_file)" />
+
+  <!-- important generally, but specifically utilised by the current app manager -->  
+  <param name="robot/name" value="lisa"/>
+  <param name="robot/type" value="lisa"/>
+  
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" respawn="true">
+    <param name="publish_frequency" type="double" value="5.0" />
+  </node>
+</launch>
+

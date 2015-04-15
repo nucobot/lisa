@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node name="lisa_odometry" pkg="lisa_odometry" type="lisa_odometry" output="screen" respawn="false">
+    <!--param name="publish_frequency" value="50"/-->
+  </node>
+</launch>

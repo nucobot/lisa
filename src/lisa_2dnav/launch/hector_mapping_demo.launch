@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find lisa_bringup)/launch/3dsensor.launch">
+    <arg name="rgb_processing" value="false" />
+    <arg name="depth_registration" value="false" />
+    <arg name="depth_processing" value="false" />
+    <arg name="camera" value="kinect" />
+    <arg name="scan_topic" value="/scan" />
+  </include>
+
+  <include file="$(find lisa_2dnav)/launch/includes/hector_mapping.launch.xml"/>
+  <!--
+  <include file="$(find lisa_2dnav)/launch/includes/move_base.launch.xml">
+    <arg name="base" value="lisa" />
+  </include>
+  -->
+  <!-- start Rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lisa_2dnav)/rviz/gmapping_demo.rviz"/>
+</launch>
