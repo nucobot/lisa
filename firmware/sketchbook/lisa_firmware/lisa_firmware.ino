@@ -25,12 +25,8 @@
 #include <DualVNH5019MotorShield.h>
 
 #include <ros.h>
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Vector3Stamped.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <geometry_msgs/Twist.h>
-#include <sensor_msgs/Imu.h>
-#include <std_msgs/Float32.h>
 
 
 //DEFINES         
@@ -50,7 +46,20 @@
 #define ENCODER1_INT_WIRE 3  // Interrupt input pin (according to datasheet)
 #define ENCODER1_REF_WIRE 6  // Reference wire to check rotation direction
 
-
+// MESSAGE-RELATED DEFINES
+#define IMU_ANG_VX 0  // IMU: imu_msg.angular_velocity.x
+#define IMU_ANG_VY 1  // IMU: imu_msg.angular_velocity.y
+#define IMU_ANG_VZ 2  // IMU: imu_msg.angular_velocity.z
+#define IMU_LIN_AX 3  // IMU: imu_msg.linear_acceleration.x
+#define IMU_LIN_AY 4  // IMU: imu_msg.linear_acceleration.y
+#define IMU_LIN_AZ 5  // IMU: imu_msg.linear_acceleration.z
+#define MAG_SCAL_X 6  // Magnetometer scaled.XAxis
+#define MAG_SCAL_Y 7  // Magnetometer scaled.YAxis
+#define MAG_SCAL_Z 8  // Magnetometer scaled.ZAxis
+#define BAT_VOLT_1 9  // Battery voltage on BAT1_PIN
+#define BAT_VOLT_2 10 // Battery voltage on BAT2_PIN
+#define ENC_DATA_0 11 // Speed on encoder 0
+#define ENC_DATA_1 12 // Speed on encoder 1
            
 //FUNCTIONS
 void setup();
@@ -67,22 +76,16 @@ long int encoder0_cnt, encoder1_cnt;
 DualVNH5019MotorShield md(54, 55, 69, 68, 56, 57, 67, 66);
 IMU imu;
 HMC5883L compass;
+
 //ROS          
 ros::NodeHandle nh;
-//ROS-MSGS          
-sensor_msgs::Imu imu_msg;
-geometry_msgs::Vector3Stamped mag_msg;
-geometry_msgs::Point encoder_msg;
-std_msgs::Float32 bat1_msg, bat2_msg;
-//ROS-TOPICS            
-ros::Publisher pub_imu("imu/data_raw",&imu_msg);
-ros::Publisher pub_mag("imu/mag",&mag_msg);
-ros::Publisher pub_enc("encoders", &encoder_msg);
-ros::Publisher pub_bat1("battery_voltage/1", &bat1_msg);
-ros::Publisher pub_bat2("battery_voltage/2", &bat2_msg);
+
+//ROS-MSGS
+std_msgs::Float32MultiArray data_raw;
+
+//ROS-TOPICS
+ros::Publisher pub_array("apm/data_raw",&data_raw);
 ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", motor_cb);
-
-
 
 void setup() {
  //I2C        
@@ -121,49 +124,41 @@ void setup() {
  // VAR INITIALIZATION
     encoder0_cnt = 0;
     encoder1_cnt = 0;
+    data_raw.data_length = 13; // The number of output message entries
+    data_raw.data = (float *)malloc(sizeof(float)*data_raw.data_length);
  //MOTORS           
     md.init();
  //ROS        
     nh.initNode();
     nh.subscribe(sub);
-    nh.advertise(pub_imu);
-    nh.advertise(pub_mag);
-    nh.advertise(pub_bat1);
-    nh.advertise(pub_bat2);
-    nh.advertise(pub_enc);
+    nh.advertise(pub_array);
 }
 
 void loop()
 {  
-    if ( (millis()-publish_timer) > 50) {
- //IMU             
-        imu_msg.angular_velocity.x = ToD((float)(imu.GyroX()));
-        imu_msg.angular_velocity.y = ToD((float)(imu.GyroY()));
-        imu_msg.angular_velocity.z = ToD((float)(imu.GyroZ()));
-        imu_msg.linear_acceleration.x = ToG((float)(imu.AcceX()));
-        imu_msg.linear_acceleration.y = ToG((float)(imu.AcceY()));
-        imu_msg.linear_acceleration.z = ToG((float)(imu.AcceZ()));
+    if ( (millis()-publish_timer) > 20) {
+        MagnetometerScaled scaled = compass.ReadScaledAxis();      
+ //IMU
+        data_raw.data[IMU_ANG_VX] = ToD((float)(imu.GyroX()));
+        data_raw.data[IMU_ANG_VY] = ToD((float)(imu.GyroY()));
+        data_raw.data[IMU_ANG_VZ] = ToD((float)(imu.GyroZ()));
+        data_raw.data[IMU_LIN_AX] = ToG((float)(imu.AcceX()));
+        data_raw.data[IMU_LIN_AY] = ToG((float)(imu.AcceY()));        
+        data_raw.data[IMU_LIN_AZ] = ToG((float)(imu.AcceZ()));
  //COMPASS                 
-        MagnetometerScaled scaled = compass.ReadScaledAxis();
-        mag_msg.vector.x = scaled.XAxis;
-        mag_msg.vector.y = scaled.YAxis;
-        mag_msg.vector.z = scaled.ZAxis;
- //BATTERYS                  
-        bat1_msg.data = round(((analogRead(BAT1_PIN))*15000.0*0.968096/1023.0));
-        bat2_msg.data = round(((analogRead(BAT2_PIN))*15000.0*0.962191/1023.0));
+        data_raw.data[MAG_SCAL_X] = scaled.XAxis;
+        data_raw.data[MAG_SCAL_Y] = scaled.YAxis;
+        data_raw.data[MAG_SCAL_Z] = scaled.ZAxis;
+ //BATTERIES
+        data_raw.data[BAT_VOLT_1] = round(((analogRead(BAT1_PIN))*15000.0*0.968096/1023.0));
+        data_raw.data[BAT_VOLT_2] = round(((analogRead(BAT2_PIN))*15000.0*0.962191/1023.0));
  //ENCODERS
-        encoder_msg.x = encoder0_cnt;
-        encoder_msg.y = encoder1_cnt;
+        data_raw.data[ENC_DATA_0] = encoder0_cnt;
+        data_raw.data[ENC_DATA_1] = encoder1_cnt;
         encoder0_cnt = 0;
         encoder1_cnt = 0;
- //ROS             
-        mag_msg.header.stamp = nh.now();
-        imu_msg.header.stamp = nh.now();
-        pub_imu.publish(&imu_msg);
-        pub_mag.publish(&mag_msg);
-        pub_bat1.publish(&bat1_msg);
-        pub_bat2.publish(&bat2_msg);
-        pub_enc.publish(&encoder_msg);
+ //ROS                     
+        pub_array.publish(&data_raw);
         publish_timer = millis();
     }
     nh.spinOnce();
