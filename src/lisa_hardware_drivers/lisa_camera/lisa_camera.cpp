@@ -10,6 +10,8 @@ using namespace cv;
 int main(int, char**)
 {
     ROS_INFO("Using OpenCV %s", CV_VERSION);
+    return 0;
+
     VideoCapture cap(0); // open the default camera
     if(!cap.isOpened())  // check if we succeeded
         return -1;
