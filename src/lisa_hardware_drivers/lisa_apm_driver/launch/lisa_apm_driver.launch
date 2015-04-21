@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node name="lisa_apm_driver" pkg="lisa_apm_driver" type="lisa_apm_driver" output="screen" respawn="false">
+    <!--param name="publish_frequency" value="50"/-->
+  </node>
+</launch>
