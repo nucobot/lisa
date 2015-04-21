@@ -19,6 +19,7 @@
 #include <SPI.h>
 #include <math.h>
 #include <Wire.h>
+#include <Servo.h> 
 
 #include <HMC5883L.h>
 #include <IMU.h>
@@ -26,6 +27,7 @@
 
 #include <ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int32.h>
 #include <geometry_msgs/Twist.h>
 
 
@@ -38,6 +40,9 @@
 #define ToG(x) (x*9.80665/16384)
 #define BAT1_PIN 4
 #define BAT2_PIN 5
+#define BTN_PIN 60
+#define SERVO1_PIN 7
+#define SERVO2_PIN 8
 
 #define ENCODER0_INT 0       // Interrupt number
 #define ENCODER0_INT_WIRE 2  // Interrupt input pin (according to datasheet)
@@ -60,11 +65,15 @@
 #define BAT_VOLT_2 10 // Battery voltage on BAT2_PIN
 #define ENC_DATA_0 11 // Speed on encoder 0
 #define ENC_DATA_1 12 // Speed on encoder 1
+#define BTN_STATE  13 // Power button state
+#define DATA_LENGTH 14
            
 //FUNCTIONS
 void setup();
 void loop();
 void motor_cb(const geometry_msgs::Twist& cmd_msg);
+void srv_carpet_cb(const std_msgs::Int32& msg);
+void srv_clapper_cb(const std_msgs::Int32& msg);
 void encoder0_cb();
 void encoder1_cb();
 
@@ -76,6 +85,8 @@ long int encoder0_cnt, encoder1_cnt;
 DualVNH5019MotorShield md(54, 55, 69, 68, 56, 57, 67, 66);
 IMU imu;
 HMC5883L compass;
+Servo srv_clapper;
+Servo srv_carpet;
 
 //ROS          
 ros::NodeHandle nh;
@@ -85,7 +96,9 @@ std_msgs::Float32MultiArray data_raw;
 
 //ROS-TOPICS
 ros::Publisher pub_array("apm/data_raw",&data_raw);
-ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", motor_cb);
+ros::Subscriber<std_msgs::Int32> sub_srv_carpet("carpet_servo", srv_carpet_cb);
+ros::Subscriber<std_msgs::Int32> sub_srv_clapper("clapper_servo", srv_clapper_cb);
+ros::Subscriber<geometry_msgs::Twist> sub_motors("cmd_vel", motor_cb);
 
 void setup() {
  //I2C        
@@ -106,10 +119,14 @@ void setup() {
     compass = HMC5883L();
     compass.SetScale(1.3);
     compass.SetMeasurementMode(Measurement_Continuous);
+ //SERVOS
+    srv_carpet.attach(SERVO1_PIN);
+    srv_clapper.attach(SERVO2_PIN);
  //MISCELLANEOUS
     pinMode(25, OUTPUT); // BLUE LED
     pinMode(26, OUTPUT); // YELLOW LED
     pinMode(27, OUTPUT); // RED LED
+    pinMode(BTN_PIN, INPUT);
  // INTERRUPTS
     attachInterrupt(ENCODER0_INT, encoder0_cb, RISING);
     pinMode(ENCODER0_INT_WIRE, INPUT);
@@ -124,19 +141,21 @@ void setup() {
  // VAR INITIALIZATION
     encoder0_cnt = 0;
     encoder1_cnt = 0;
-    data_raw.data_length = 13; // The number of output message entries
+    data_raw.data_length = DATA_LENGTH; // The number of output message entries
     data_raw.data = (float *)malloc(sizeof(float)*data_raw.data_length);
  //MOTORS           
     md.init();
  //ROS        
     nh.initNode();
-    nh.subscribe(sub);
+    nh.subscribe(sub_motors);
+    nh.subscribe(sub_srv_clapper);
+    nh.subscribe(sub_srv_carpet);
     nh.advertise(pub_array);
 }
 
 void loop()
 {  
-    if ( (millis()-publish_timer) > 200) {
+    if ( (millis()-publish_timer) > 20) {
         MagnetometerScaled scaled = compass.ReadScaledAxis();      
  //IMU
         data_raw.data[IMU_ANG_VX] = ToD((float)(imu.GyroX()));
@@ -157,6 +176,8 @@ void loop()
         data_raw.data[ENC_DATA_1] = encoder1_cnt;
         encoder0_cnt = 0;
         encoder1_cnt = 0;
+ //BUTTON
+        data_raw.data[BTN_STATE] = digitalRead(BTN_PIN);
  //ROS                     
         pub_array.publish(&data_raw);
         publish_timer = millis();
@@ -179,6 +200,16 @@ void motor_cb(const geometry_msgs::Twist& cmd_msg)
     left  += cmd_msg.angular.z * WHEEL_SEPARATION / 2.0;
 
     md.setSpeeds(int(right*TRANSLATION_FACTOR), -int(left*TRANSLATION_FACTOR));
+}
+
+void srv_carpet_cb(const std_msgs::Int32& msg)
+{
+    srv_carpet.write(msg.data);
+}
+
+void srv_clapper_cb(const std_msgs::Int32& msg)
+{
+    srv_clapper.write(msg.data);
 }
 
 void encoder0_cb(){
