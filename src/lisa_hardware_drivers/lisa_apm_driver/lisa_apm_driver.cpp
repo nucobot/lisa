@@ -33,14 +33,6 @@ ros::Time current_time, last_time;
 double x = 0.0;
 double y = 0.0;
 double yaw = 0.0;
-double th = 0.0;
-
-double vx = 0.0;
-double vy = 0.0;
-double vth = 0.0;
-
-double ax = 0.0;
-double ay = 0.0;
 
 double raw_to_meter = 100; // 1 meter per second = raw_to_meter of raw data
 double separation = 0.175; // separation of sensors in meters
@@ -95,14 +87,14 @@ void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
                                                   (0)   (0)  (1e6) (0)  (0)  (0)
                                                   (0)   (0)   (0) (1e6) (0)  (0)
                                                   (0)   (0)   (0)  (0) (1e6) (0)
-                                                  (0)   (0)   (0)  (0)  (0)  (1e3);
+                                                  (0)   (0)   (0)  (0)  (0)  (1e-3);
 
     odom.twist.covariance = boost::assign::list_of(1e-3)  (0) (0)  (0)  (0)  (0)
                                                   (0) (1e-3)  (0)  (0)  (0)  (0)
                                                   (0)   (0)  (1e6) (0)  (0)  (0)
                                                   (0)   (0)   (0) (1e6) (0)  (0)
                                                   (0)   (0)   (0)  (0) (1e6) (0)
-                                                  (0)   (0)   (0)  (0)  (0)  (1e3);
+                                                  (0)   (0)   (0)  (0)  (0)  (1e-3);
     //publish the message
     odom_pub.publish(odom);
 
@@ -153,7 +145,7 @@ void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
 
     last_time = current_time;
 
-    ROS_INFO("dt: %1.6f, (%3.3f, %3.3f) | (%3.3f, %3.3f) | (%3.3f, %3.3f)", dt, x, y, vx, vy, vth, th);
+    ROS_INFO("dt: %1.6f, (%3.3f, %3.3f)", dt, x, y);
 }
 
 int main(int argc, char **argv) {
