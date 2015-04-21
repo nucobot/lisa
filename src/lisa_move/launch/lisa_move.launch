@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node pkg="lisa_move" name="lisa_move" type="lisa_move" output="screen">
+    </node>
+</launch>
