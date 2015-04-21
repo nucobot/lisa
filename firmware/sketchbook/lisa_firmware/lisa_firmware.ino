@@ -136,7 +136,7 @@ void setup() {
 
 void loop()
 {  
-    if ( (millis()-publish_timer) > 20) {
+    if ( (millis()-publish_timer) > 200) {
         MagnetometerScaled scaled = compass.ReadScaledAxis();      
  //IMU
         data_raw.data[IMU_ANG_VX] = ToD((float)(imu.GyroX()));
@@ -178,7 +178,7 @@ void motor_cb(const geometry_msgs::Twist& cmd_msg)
     right -= cmd_msg.angular.z * WHEEL_SEPARATION / 2.0;
     left  += cmd_msg.angular.z * WHEEL_SEPARATION / 2.0;
 
-    md.setSpeeds(int(right*TRANSLATION_FACTOR), int(left*TRANSLATION_FACTOR));
+    md.setSpeeds(int(right*TRANSLATION_FACTOR), -int(left*TRANSLATION_FACTOR));
 }
 
 void encoder0_cb(){
