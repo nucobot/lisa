@@ -66,7 +66,7 @@
 #define ENC_DATA_0 11 // Speed on encoder 0
 #define ENC_DATA_1 12 // Speed on encoder 1
 #define BTN_STATE  13 // Power button state
-#define DATA_LENGTH 14
+#define DATA_SIZE  14 // Overall array size
            
 //FUNCTIONS
 void setup();
@@ -122,6 +122,8 @@ void setup() {
  //SERVOS
     srv_carpet.attach(SERVO1_PIN);
     srv_clapper.attach(SERVO2_PIN);
+    srv_carpet.write(90);
+    srv_clapper.write(90);
  //MISCELLANEOUS
     pinMode(25, OUTPUT); // BLUE LED
     pinMode(26, OUTPUT); // YELLOW LED
@@ -141,7 +143,7 @@ void setup() {
  // VAR INITIALIZATION
     encoder0_cnt = 0;
     encoder1_cnt = 0;
-    data_raw.data_length = DATA_LENGTH; // The number of output message entries
+    data_raw.data_length = DATA_SIZE; // The number of output message entries
     data_raw.data = (float *)malloc(sizeof(float)*data_raw.data_length);
  //MOTORS           
     md.init();
