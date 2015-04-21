@@ -4,7 +4,7 @@ project(lisa_apm_driver)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED COMPONENTS sensor_msgs nav_msgs std_msgs roscpp tf)
+find_package(catkin REQUIRED COMPONENTS geometry_msgs sensor_msgs nav_msgs std_msgs roscpp tf)
 
 catkin_package()
 include_directories(${catkin_INCLUDE_DIRS})
