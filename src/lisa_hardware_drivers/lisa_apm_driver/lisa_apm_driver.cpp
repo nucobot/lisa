@@ -3,6 +3,7 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <boost/assign/list_of.hpp> // for 'list_of()
 
 #define IMU_ANG_VX 0  // IMU: imu_msg.angular_velocity.x
@@ -23,6 +24,7 @@
 
 ros::Publisher  odom_pub;
 ros::Publisher  imu_pub;
+ros::Publisher  mag_pub;
 ros::Subscriber apm_sub;
 
 ros::Time current_time, last_time;
@@ -137,6 +139,18 @@ void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
     //publish the message
     imu_pub.publish(imu);
 
+    //next, we'll publish the magnetometer message over ROS
+    geometry_msgs::Vector3Stamped mag;
+    mag.header.stamp = current_time;
+    mag.header.frame_id = "apm_frame";
+
+    mag.vector.x = apm->data[MAG_SCAL_X];
+    mag.vector.y = apm->data[MAG_SCAL_Y];
+    mag.vector.z = apm->data[MAG_SCAL_Z];
+
+    //publish the message
+    mag_pub.publish(mag);
+
     last_time = current_time;
 
     ROS_INFO("dt: %1.6f, (%3.3f, %3.3f) | (%3.3f, %3.3f) | (%3.3f, %3.3f)", dt, x, y, vx, vy, vth, th);
@@ -148,6 +162,7 @@ int main(int argc, char **argv) {
 
     odom_pub = nh.advertise<nav_msgs::Odometry>("/odom", 50);
     imu_pub  = nh.advertise<sensor_msgs::Imu>("imu/data_raw", 50);
+    mag_pub  = nh.advertise<geometry_msgs::Vector3Stamped>("imu/mag", 50);
     apm_sub  = nh.subscribe("/apm/data_raw", 50, apmCallback);
 
     current_time = ros::Time::now();
