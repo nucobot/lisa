@@ -5,6 +5,38 @@
     
   <link name="base_footprint"/>
 
+  <!-- APM -->
+  <joint name="apm_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="apm_link" />
+  </joint>
+  <link name="apm_link">
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="0.019995" ixy="0.0" ixz="0.0"
+               iyy="0.019995" iyz="0.0" 
+               izz="0.03675" />
+    </inertial>
+  </link>
+
+  <!-- Wheel sensors -->
+  <joint name="encoder_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="encoder_link" />
+  </joint>
+  <link name="encoder_link">
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="0.019995" ixy="0.0" ixz="0.0"
+               iyy="0.019995" iyz="0.0" 
+               izz="0.03675" />
+    </inertial>
+  </link>
+
   <joint name="base_joint" type="fixed">
     <origin xyz="0 0 0.0102" rpy="0 0 0" />
     <parent link="base_footprint"/>

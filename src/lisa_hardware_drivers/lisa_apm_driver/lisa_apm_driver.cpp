@@ -18,6 +18,8 @@
 #define BAT_VOLT_2 10 // Battery voltage on BAT2_PIN
 #define ENC_DATA_0 11 // Speed on encoder 0
 #define ENC_DATA_1 12 // Speed on encoder 1
+#define BTN_STATE  13 // Power button state
+#define DATA_SIZE  14 // Overall array size
 
 ros::Publisher  odom_pub;
 ros::Publisher  imu_pub;
@@ -39,7 +41,7 @@ double ax = 0.0;
 double ay = 0.0;
 
 double raw_to_meter = 100; // 1 meter per second = raw_to_meter of raw data
-double separation = 0.10; // separation of sensors in meters
+double separation = 0.175; // separation of sensors in meters
 
 void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
     // Filling out the velocities
@@ -69,7 +71,7 @@ void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
     //next, we'll publish the odometry message over ROS
     nav_msgs::Odometry odom;
     odom.header.stamp = current_time;
-    odom.header.frame_id = "odom_frame";
+    odom.header.frame_id = "encoder_link";
 
     //set the position
     odom.pose.pose.position.x = x;
@@ -106,7 +108,7 @@ void apmCallback(const std_msgs::Float32MultiArray::ConstPtr& apm) {
     //next, we'll publish the imu message over ROS
     sensor_msgs::Imu imu;
     imu.header.stamp = current_time;
-    imu.header.frame_id = "apm_frame";
+    imu.header.frame_id = "apm_link";
 
     geometry_msgs::Quaternion imu_quat = tf::createQuaternionMsgFromYaw(apm->data[MAG_SCAL_Z]);
     imu.orientation = imu_quat;
