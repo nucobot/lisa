@@ -368,7 +368,7 @@ def create_startup_scripts():
     if (result[0] != 0): exit(1)
     
     user_format_str = gen_bash_header(HOME_DIR+"/.user_startup.log")
-    user_format_str+= ("\nDRIVE_USB_FILE=/dev/ttyUSB0\n\n"+
+    user_format_str+= ("\nDRIVE_USB_FILE=/dev/ttyACM0\n\n"+
     "echo \"Waiting until $DRIVE_USB_FILE appears in the system...\" >> $LOGFILE\n"+
     "while [ ! -e $DRIVE_USB_FILE ]\n"+
     "do\n"+
