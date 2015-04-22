@@ -72,7 +72,7 @@ public:
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "nucobot_wheel_odometry_driver");
+    ros::init(argc, argv, "lisa_wheel_odometry_driver");
     ros::NodeHandle node;
 
     if (!node.getParam("wheel_odometry_driver/odom_frame", odom_frame)) odom_frame = "/odom";
