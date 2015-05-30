@@ -2,6 +2,9 @@
 
 <launch>
   <node name="lisa_apm_driver" pkg="lisa_apm_driver" type="lisa_apm_driver" output="screen" respawn="false">
-    <!--param name="publish_frequency" value="50"/-->
+    <param name="lisa_apm_driver/wheel_separation" value="0.175"/> <!-- 17.5 cm -->
+    <param name="lisa_apm_driver/raw_to_meter"     value="50"/>
+    <param name="lisa_apm_driver/odom_frame"       value="encoder_link"/>
+    <param name="lisa_apm_driver/imu_frame"        value="apm_link"/>
   </node>
 </launch>
